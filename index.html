@@ -742,7 +742,13 @@ function chooseItem(item){
   itemInput.dispatchEvent(new Event('input'));
   suppressDropdownReopen = false;
   hideItemDropdown();
-  qtyInput.focus();
+  if(calcField.style.display !== 'none' && !needAmountInput.disabled){
+    needAmountInput.focus();
+  } else if(calcField.style.display !== 'none' && thicknessSelect && !thicknessSelect.disabled && !thicknessSelect.value){
+    thicknessSelect.focus();
+  } else {
+    qtyInput.focus();
+  }
 }
 
 function updateDropdownActive(){
