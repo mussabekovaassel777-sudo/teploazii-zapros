@@ -122,6 +122,62 @@
   #kpPrintArea .kp-sign .kp-sign-site{color:var(--navy);}
   .modal-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
   .kp-download-hint{font-size:12px;color:var(--muted);margin-top:8px;}
+
+  #mobTotal{display:none;text-align:right;font-weight:800;color:var(--navy);font-size:16px;padding:4px 2px 0;}
+  .adv-head{grid-template-columns:1fr 280px;gap:12px;align-items:end;}
+  .adv-query{grid-template-columns:1fr auto;gap:10px;margin-top:10px;}
+
+  /* ---- МОБИЛЬНАЯ ВЕРСИЯ ---- */
+  @media(max-width:640px){
+    html{-webkit-text-size-adjust:100%;}
+    .wrap{padding:12px 10px 90px;}
+    header{gap:10px;margin-bottom:12px;}
+    .logo-img{height:42px;}
+    h1{font-size:18px;}
+    .sub{font-size:12px;}
+    .card{padding:14px 12px;border-radius:12px;margin-bottom:12px;}
+    select,input,textarea{font-size:16px;padding:12px;min-height:46px;}
+    #itemInput{font-size:16px !important;}
+    label{font-size:13px;}
+    .btn{padding:13px 16px;font-size:15px;min-height:46px;}
+    .adv-head,.adv-query{grid-template-columns:1fr;}
+    .adv-query .btn{width:100%;}
+    #calcField .row, #calcCostField .row{grid-template-columns:1fr !important;}
+    .add-row{display:block;}
+    .add-row .btn{width:100%;}
+    .top-actions .btn{width:100%;}
+    .suggest-chip{padding:9px 14px;font-size:14px;}
+    .item-dropdown{max-height:55vh;}
+    .item-dropdown-item{padding:13px 14px;}
+    .toast{width:calc(100% - 24px);text-align:center;bottom:14px;}
+    /* таблица запроса → карточки */
+    #orderTable thead{display:none;}
+    #orderTable, #orderTable tbody, #orderTable tr, #orderTable td{display:block;width:100%;}
+    #orderTable tr{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;position:relative;background:#fff;}
+    #orderTable td{border:none;padding:3px 0;font-size:14px;}
+    #orderTable td:nth-child(1){position:absolute;top:10px;right:12px;width:auto;color:var(--muted);font-weight:700;}
+    #orderTable td:nth-child(2){padding-bottom:4px;}
+    #orderTable td:nth-child(4)::before{content:'Кол-во: ';color:var(--muted);font-size:12px;}
+    #orderTable td:nth-child(4){display:inline-block;width:auto;font-weight:800;margin-right:4px;}
+    #orderTable td:nth-child(5){display:inline-block;width:auto;}
+    #orderTable td:nth-child(6)::before{content:'Цена: ';}
+    #orderTable td:nth-child(7)::before{content:'Сумма: ';}
+    #orderTable td:nth-child(7){font-weight:800;color:var(--navy);}
+    #orderTable td:nth-child(8):empty{display:none;}
+    #orderTable td:nth-child(9){text-align:right;}
+    #orderTable td.empty{padding:20px 6px;}
+    #orderTable tr:has(td.empty){border:none;padding:0;}
+    #finalCard > label, #finalCard > div:first-of-type{display:none;}
+    #finalCard .top-actions{margin-top:0;}
+    #mobTotal.has{display:block;}
+    /* КП-окно */
+    .modal-overlay{padding:0;}
+    .modal-box{border-radius:0;min-height:100%;}
+    .modal-body{padding:12px;}
+    #kpPrintWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    #kpPrintArea{min-width:760px;}
+    .modal-actions .btn{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -156,7 +212,7 @@
   </div>
 
   <div class="card">
-    <div class="row" style="grid-template-columns:1fr 280px;gap:12px;align-items:end;">
+    <div class="row adv-head">
       <label style="margin:0;">Коротко опишите задачу (необязательно) — подскажем бренд и позиции по приоритету (Кнауф → Изотерм → Маквул), а также плёнки/дюбели к утеплителю</label>
       <div class="field" style="margin:0;">
         <label style="font-size:12px;">Область применения</label>
@@ -175,7 +231,7 @@
         </select>
       </div>
     </div>
-    <div class="row" style="grid-template-columns:1fr auto;gap:10px;margin-top:10px;">
+    <div class="row adv-query">
       <input id="needQueryInput" type="text" placeholder="напр. фасад, кровля, крыша, вент фасад, штукатурка, труба отопления..." autocomplete="off"/>
       <button class="btn btn-primary" id="suggestBtn" type="button">Подобрать</button>
     </div>
@@ -239,7 +295,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="orderCard">
     <table id="orderTable">
       <thead>
         <tr><th>№</th><th>Производитель</th><th>Позиция</th><th>Кол-во</th><th>Ед.</th><th>Цена за ед.</th><th>Сумма</th><th>Комментарий</th><th></th></tr>
@@ -248,9 +304,10 @@
         <tr><td colspan="9" class="empty">Запрос пуст — добавьте позиции выше</td></tr>
       </tbody>
     </table>
+    <div id="mobTotal"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="finalCard">
     <label>Запрос от клиента — табличный вид</label>
     <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px;">
       <table id="finalTable" style="min-width:520px;">
@@ -1142,6 +1199,7 @@ function formatTg(n){
 function render(){
   if(order.length === 0){
     orderBody.innerHTML = '<tr><td colspan="9" class="empty">Запрос пуст — добавьте позиции выше</td></tr>';
+    document.getElementById('mobTotal').className='';
     finalTableBody.innerHTML = '<tr><td colspan="8" class="empty">Запрос пуст</td></tr>';
   } else {
     orderBody.innerHTML = order.map((o,i)=>`
@@ -1170,6 +1228,7 @@ function render(){
       </tr>
     `).join('');
     const total = order.reduce((s,o)=>s + (o.cost||0), 0);
+    const mt = document.getElementById('mobTotal'); mt.textContent = 'Итого: ' + formatTg(total); mt.className = 'has';
     finalTableBody.innerHTML += `<tr style="font-weight:700;"><td colspan="6" style="text-align:right;">Итого:</td><td>${formatTg(total)}</td><td></td></tr>`;
   }
 }
