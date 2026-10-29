@@ -142,7 +142,7 @@
     .btn{padding:13px 16px;font-size:15px;min-height:46px;}
     .adv-head,.adv-query{grid-template-columns:1fr;}
     .adv-query .btn{width:100%;}
-    #calcField .row, #calcCostField .row{grid-template-columns:1fr !important;}
+    #calcCostField .row{grid-template-columns:1fr !important;}
     .add-row{display:block;}
     .add-row .btn{width:100%;}
     .top-actions .btn{width:100%;}
@@ -269,10 +269,11 @@
           <option value="m3">Клиент назвал объём, м³</option>
         </select>
       </div>
-      <div class="row" style="grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="row" style="grid-template-columns:1fr;gap:12px;">
         <input id="needAmountInput" type="number" min="0" step="any" placeholder="напр. 350" />
-        <input id="calcResultDisplay" type="text" readonly placeholder="расчётное кол-во появится здесь" />
+        <input id="calcResultDisplay" type="text" readonly style="display:none;" placeholder="расчётное кол-во появится здесь" />
       </div>
+      <div id="calcSummary" style="display:none;margin-top:8px;padding:10px 12px;border-radius:9px;background:#eef6ee;border:1px solid #cfe5cf;color:var(--navy);font-weight:800;font-size:15px;line-height:1.5;"></div>
       <div class="hint" id="calcHint"></div>
     </div>
     <div class="row" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
@@ -953,6 +954,7 @@ function unlockQtyManual(){
 }
 
 function updateCalcField(preserveValue){
+  setTimeout(()=>{ if(typeof syncCalcSummary==='function') syncCalcSummary(); },0);
   needUnitWrap.style.display = 'none';
   if(!preserveValue){
     needUnitSelect.value = 'm2';
@@ -1205,6 +1207,16 @@ brandSelect.addEventListener('change', resetCalcLock);
 itemInput.addEventListener('input', resetCalcLock);
 thicknessSelect.addEventListener('change', resetCalcLock);
 needAmountInput.addEventListener('input', resetCalcLock);
+function syncCalcSummary(){
+  const el = document.getElementById('calcSummary');
+  const v = calcResultDisplay.value;
+  if(!v){ el.style.display='none'; el.textContent=''; return; }
+  el.textContent = v.replace(/^≈\s*/,'Итого: ').replace(/\s=\s/g,' · ');
+  el.style.display='block';
+}
+needAmountInput.addEventListener('input', syncCalcSummary);
+needUnitSelect.addEventListener('change', syncCalcSummary);
+thicknessSelect.addEventListener('change', ()=>setTimeout(syncCalcSummary,0));
 needUnitSelect.addEventListener('change', ()=>{
   calcLabel.textContent = inVolume() ? 'Нужный объём, м³ (площадь посчитаем сами по толщине, кратно упаковке)' : 'Нужная площадь, м² (объём посчитаем сами по толщине, кратно упаковке)';
   needAmountInput.placeholder = inVolume() ? 'напр. 36' : 'напр. 350';
