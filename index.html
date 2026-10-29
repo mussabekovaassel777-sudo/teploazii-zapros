@@ -1010,7 +1010,8 @@ needAmountInput.addEventListener('input', ()=>{
       if(info){
         const packsNeeded = Math.ceil(need / info.areaPerPack);
         const volume = Math.round(packsNeeded * info.volPerPack * 100) / 100;
-        calcResultDisplay.value = `≈ ${packsNeeded} пач. (${volume} м3)`;
+        const areaIz = Math.round(packsNeeded * info.areaPerPack * 100) / 100;
+        calcResultDisplay.value = `≈ ${packsNeeded} пач. = ${areaIz} м² = ${volume} м³`;
         lockQtyFromCalc(volume);
         return;
       }
@@ -1018,7 +1019,7 @@ needAmountInput.addEventListener('input', ()=>{
       const tmApprox = thicknessMeters();
       if(!tmApprox){ calcResultDisplay.value=''; unlockQtyManual(); return; }
       const volApprox = applyRounding(need * tmApprox, 'continuous');
-      calcResultDisplay.value = `≈ ${volApprox} м3 (без данных по пачке)`;
+      calcResultDisplay.value = `≈ ${Math.round(need*100)/100} м² = ${volApprox} м³ (без данных по пачке)`;
       lockQtyFromCalc(volApprox);
       return;
     }
@@ -1029,7 +1030,8 @@ needAmountInput.addEventListener('input', ()=>{
     if(fixedT !== null && currentItemMatch.unit !== 'м3' && currentItemMatch.coverage){
       const packs = Math.ceil(need / currentItemMatch.coverage);
       const volInfo = Math.round(packs * currentItemMatch.coverage * tm * 100) / 100;
-      calcResultDisplay.value = `≈ ${packs} ${currentItemMatch.unit} (${volInfo} м3)`;
+      const areaInfo = Math.round(packs * currentItemMatch.coverage * 100) / 100;
+      calcResultDisplay.value = `≈ ${packs} ${currentItemMatch.unit} = ${areaInfo} м² = ${volInfo} м³`;
       lockQtyFromCalc(packs);
       return;
     }
@@ -1038,12 +1040,13 @@ needAmountInput.addEventListener('input', ()=>{
     if(packVol){
       const packsNeeded = Math.ceil(rawVolume / packVol);
       const volume = Math.round(packsNeeded * packVol * 1000) / 1000;
-      calcResultDisplay.value = `≈ ${packsNeeded} уп. (${volume} м3)`;
+      const areaPk = Math.round(volume / tm * 100) / 100;
+      calcResultDisplay.value = `≈ ${packsNeeded} уп. = ${areaPk} м² = ${volume} м³`;
       lockQtyFromCalc(volume);
       return;
     }
     const volume = applyRounding(rawVolume, 'continuous');
-    calcResultDisplay.value = `≈ ${volume} м3`;
+    calcResultDisplay.value = `≈ ${Math.round(need*100)/100} м² = ${volume} м³`;
     lockQtyFromCalc(volume);
     return;
   }
