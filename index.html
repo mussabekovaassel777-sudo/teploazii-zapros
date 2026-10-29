@@ -263,6 +263,12 @@
     </div>
     <div class="field" id="calcField" style="margin-top:12px;display:none;">
       <label id="calcLabel">Нужно на объект</label>
+      <div id="needUnitWrap" style="display:none;margin-bottom:8px;">
+        <select id="needUnitSelect" style="width:auto;min-width:230px;">
+          <option value="m2">Клиент назвал площадь, м²</option>
+          <option value="m3">Клиент назвал объём, м³</option>
+        </select>
+      </div>
       <div class="row" style="grid-template-columns:1fr 1fr;gap:12px;">
         <input id="needAmountInput" type="number" min="0" step="any" placeholder="напр. 350" />
         <input id="calcResultDisplay" type="text" readonly placeholder="расчётное кол-во появится здесь" />
@@ -399,6 +405,9 @@ const thicknessSelect = document.getElementById('thicknessSelect');
 const calcField = document.getElementById('calcField');
 const calcLabel = document.getElementById('calcLabel');
 const needAmountInput = document.getElementById('needAmountInput');
+const needUnitSelect = document.getElementById('needUnitSelect');
+const needUnitWrap = document.getElementById('needUnitWrap');
+const inVolume = ()=> needUnitWrap.style.display !== 'none' && needUnitSelect.value === 'm3';
 const calcResultDisplay = document.getElementById('calcResultDisplay');
 const calcHint = document.getElementById('calcHint');
 
@@ -944,7 +953,9 @@ function unlockQtyManual(){
 }
 
 function updateCalcField(preserveValue){
+  needUnitWrap.style.display = 'none';
   if(!preserveValue){
+    needUnitSelect.value = 'm2';
     needAmountInput.value = '';
     calcResultDisplay.value = '';
     qtyInput.value = '';
@@ -955,7 +966,9 @@ function updateCalcField(preserveValue){
   if(isAreaToVolumeItem()){
     const fixedT = fixedThicknessOf(currentItemMatch);
     calcField.style.display = 'block';
-    calcLabel.textContent = 'Нужная площадь, м² (объём посчитаем сами по толщине, кратно пачке)';
+    needUnitWrap.style.display = 'block';
+    calcLabel.textContent = inVolume() ? 'Нужный объём, м³ (площадь посчитаем сами по толщине, кратно упаковке)' : 'Нужная площадь, м² (объём посчитаем сами по толщине, кратно упаковке)';
+    needAmountInput.placeholder = inVolume() ? 'напр. 36' : 'напр. 350';
     unlockQtyManual();
     if(fixedT !== null){
       needAmountInput.disabled = false;
@@ -1000,11 +1013,16 @@ function updateCalcField(preserveValue){
 
 needAmountInput.addEventListener('input', ()=>{
   if(!currentItemMatch){ calcResultDisplay.value=''; unlockQtyManual(); return; }
-  const need = Number(needAmountInput.value);
+  let need = Number(needAmountInput.value);
   if(!need || need <= 0){ calcResultDisplay.value=''; qtyInput.value=''; unlockQtyManual(); return; }
 
   if(isAreaToVolumeItem()){
     const fixedT = fixedThicknessOf(currentItemMatch);
+    if(inVolume()){
+      const tmV = fixedT !== null ? fixedT : thicknessMeters();
+      if(!tmV){ calcResultDisplay.value=''; unlockQtyManual(); return; }
+      need = need / tmV; // объём → площадь по толщине
+    }
     if(fixedT === null && isIzotermBrand(brandSelect.value)){
       const info = izotermPackInfo();
       if(info){
@@ -1144,7 +1162,7 @@ addBtn.addEventListener('click', ()=>{
     if(isAreaToVolumeItem()){
       const fixedT = fixedThicknessOf(match);
       const thicknessLabel = fixedT !== null ? `${Math.round(fixedT*1000)} мм` : thicknessSelect.value;
-      calcNote = `нужная площадь: ${needAmountInput.value} м² при толщине ${thicknessLabel} → расчёт ${calcResultDisplay.value}`;
+      calcNote = `${inVolume() ? 'нужный объём' : 'нужная площадь'}: ${needAmountInput.value} ${inVolume() ? 'м³' : 'м²'} при толщине ${thicknessLabel} → расчёт ${calcResultDisplay.value}`;
     } else {
       const measureNoun = {'площадь':'м²','объём':'м³','длина':'м','штук':'шт'}[match.measureType] || '';
       calcNote = `нужно на объект: ${needAmountInput.value} ${measureNoun} → расчёт ${calcResultDisplay.value}`;
@@ -1187,6 +1205,12 @@ brandSelect.addEventListener('change', resetCalcLock);
 itemInput.addEventListener('input', resetCalcLock);
 thicknessSelect.addEventListener('change', resetCalcLock);
 needAmountInput.addEventListener('input', resetCalcLock);
+needUnitSelect.addEventListener('change', ()=>{
+  calcLabel.textContent = inVolume() ? 'Нужный объём, м³ (площадь посчитаем сами по толщине, кратно упаковке)' : 'Нужная площадь, м² (объём посчитаем сами по толщине, кратно упаковке)';
+  needAmountInput.placeholder = inVolume() ? 'напр. 36' : 'напр. 350';
+  resetCalcLock();
+  if(needAmountInput.value) needAmountInput.dispatchEvent(new Event('input'));
+});
 
 function removeRow(idx){
   order.splice(idx,1);
