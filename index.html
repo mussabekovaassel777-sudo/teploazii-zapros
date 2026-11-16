@@ -930,7 +930,7 @@ function isAreaToVolumeItem(){
 
 const ROLL_OVERLAP = 1.15;
 function isRollItem(item){
-  return !!item && item.measureType === 'площадь' && !!item.coverage && item.role !== 'insulation';
+  return !!item && item.measureType === 'площадь' && !!item.coverage && item.role !== 'insulation' && item.role !== 'pipe';  // Рокафлекс / Мисот-флекс — без нахлёста
 }
 
 function applyRounding(raw, mode){
