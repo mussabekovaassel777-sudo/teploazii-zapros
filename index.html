@@ -930,7 +930,7 @@ function isAreaToVolumeItem(){
 
 const ROLL_OVERLAP = 1.15;
 function isRollItem(item){
-  return !!item && item.measureType === 'площадь' && !!item.coverage && item.role !== 'insulation' && !/ondutiss|ондутис/i.test(item.name || '');  // у Ондутис нахлёст не считаем
+  return !!item && item.measureType === 'площадь' && !!item.coverage && item.role !== 'insulation';
 }
 
 function applyRounding(raw, mode){
